@@ -1,0 +1,16 @@
+# Hidden files
+*/.*/
+*/*.log
+
+# Python build files
+*/dist/
+*/*.egg-info/
+*/MANIFEST
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Nodejs
+*/node_modules/
