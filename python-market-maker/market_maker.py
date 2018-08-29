@@ -1,4 +1,4 @@
-# This code is for sample purposes only, comes as is and with no warranty or guarantee or performance
+# This code is for sample purposes only, comes as is and with no warranty or guarantee of performance
 
 from collections    import OrderedDict
 from datetime       import datetime
