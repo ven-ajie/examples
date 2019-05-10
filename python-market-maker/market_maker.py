@@ -196,7 +196,11 @@ class MarketMaker( object ):
         self.update_status()
         return sum( self.deltas.values()) / self.equity_btc
 
-    
+
+    def get_perpetual (self, contract):
+		return self.futures[contract]['instrumentName'] 
+	
+	
     def get_spot( self ):
         return self.client.index()[ 'btc' ]
 
