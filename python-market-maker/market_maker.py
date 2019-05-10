@@ -142,7 +142,7 @@ class MarketMaker( object ):
 		imb_asks = ob['asks'][0]['cm_amount']
 		imbalance = imb_bids / imb_asks
 
-		# Menentukan arah
+		# determine direction (1 depth OB--> need to improve)
 		if imbalance > 1:
 			imbalance
 		else:
@@ -290,10 +290,96 @@ class MarketMaker( object ):
             pos_lim_long    = max( 0, pos_lim_long  )
             pos_lim_short   = max( 0, pos_lim_short )
             
+            #getting average price for current position 
+            try:
+				avg_price   = self.positions[fut]['averagePrice'] * (self.positions[fut]['size'] / abs(
+						        self.positions[fut]['size'])
+                                )
+			except:
+				avg_price = 0
+
+			instName 	    = self.get_perpetual (fut) 
+			imb 		    = self.get_bbo(fut)['imbalance']
+			posOpn 		    = sum(OrderedDict({k: self.positions[k]['size'] for k 
+							    in self.futures.keys()}).values())
+			posFut 		    = abs(self.positions[fut]['size'])#individual
+
+			try:
+				last_price_buy1 = self.get_bbo(fut)['last_price_buy'][0] ['price'] 
+				last_price_sell1 = self.get_bbo(fut)['last_price_sell'][0] ['price'] 
+				diff_time 	= (self.client.gettime()/1000) - (self.get_bbo(fut)[
+							    'last_price'][0] ['timeStamp']/1000
+							    )
+			
+			except:
+				last_price_buy1 = 0
+				last_price_sell1 = 0
+				diff_time = 31 # 31 > 30
+				
+			last_buy 	    = last_price_buy1 - (last_price_buy1*PCT/2)
+			last_sell   	= abs(last_price_sell1) + abs((last_price_sell1*PCT/2))
+			posFutBid 	    = sum([o['size'] for o in [o for o in self.client.positions () if 
+							    o['direction'] == 'buy' and  
+								o['currency'] == fut[:3].lower()]]
+							    )
+			posfutAsk 	    = sum([o['size'] for o in [o for o in self.client.positions () if 
+							    o['direction'] == 'sell' and  
+								o['currency'] == fut[:3].lower()]]
+							    )
+			posfutOrdAsk    = sum([o['quantity'] for o in [o for o in self.client.getopenorders(fut) if 
+							    o['direction'] == 'sell' and  
+								o['api'] == True ]]
+							    )
+			posfutOrdBid    = sum([o['quantity'] for o in [o for o in self.client.getopenorders(fut) if 
+							    o['direction'] == 'buy'and  
+								o['api'] == True]]
+							    )
+		
+			NetPosFut=(posFutBid+posfutAsk)
+			PCTAdj          = PCT/2 if instName [-9:] == 'PERPETUAL' else PCT/2 # 2 = arbitrase aja
+			PCTAdj0         = PCTAdj*1
+			PCTAdj1         = PCTAdj*1
+			PCTAdj2         = PCTAdj*2
+			PCTAdj3         = PCTAdj*5
+			PCTAdj4         = PCTAdj*10
+			PCTAdj5         = PCTAdj*20
+  	
+			Margin          = avg_price * PCTAdj  
+			avg_priceAdj    = abs(avg_price) * (PCTAdj/2)  # up/down
+			avg_down        = abs(avg_price) - abs(avg_priceAdj/2)
+			avg_up          = abs(avg_price) + abs(avg_priceAdj)
+			
+			avg_priceAdj0   = abs(avg_price) * PCTAdj0  # up/down, mengimbangi kenaikan/penurunan harga, arbitrase aja
+			avg_priceAdj1   = abs(avg_price) * PCTAdj1
+			avg_priceAdj2   = abs(avg_price) * PCTAdj2
+			avg_priceAdj3   = abs(avg_price) * PCTAdj3
+			avg_priceAdj4   = abs(avg_price) * PCTAdj4
+			avg_priceAdj5   = abs(avg_price) * PCTAdj5
+			
+			avg_down0       = abs(avg_price) - abs(avg_priceAdj0)
+			avg_down1       = abs(avg_price) - abs(avg_priceAdj1)
+			avg_down2       = abs(avg_price) - abs(avg_priceAdj2)
+			avg_down3       = abs(avg_price) - abs(avg_priceAdj3)
+			avg_down4       = abs(avg_price) - abs(avg_priceAdj4)
+			avg_down5       = abs(avg_price) - abs(avg_priceAdj5)
+
+			avg_up0         = abs(avg_price) + abs(avg_priceAdj0)
+			avg_up1         = abs(avg_price) + abs(avg_priceAdj1)
+			avg_up2         = abs(avg_price) + abs(avg_priceAdj2)
+			avg_up3         = abs(avg_price) + abs(avg_priceAdj3)
+			avg_up4         = abs(avg_price) + abs(avg_priceAdj4)
+			avg_up5         = abs(avg_price) + abs(avg_priceAdj5)
+
+			#Menghitung kuantitas beli/jual
+			# maks kuantitas by maks leverage
+			bal_btc         = self.client.account()[ 'equity' ]
+			qty_lvg         = (bal_btc * spot * 80)/10 # 100%-20%
+
+
             min_order_size_btc = MIN_ORDER_SIZE / spot * CONTRACT_SIZE
-            qtybtc  = max( PCT_QTY_BASE  * bal_btc, min_order_size_btc)
-            nbids   = min( math.trunc( pos_lim_long  / qtybtc ), MAX_LAYERS )
-            nasks   = min( math.trunc( pos_lim_short / qtybtc ), MAX_LAYERS )
+            qtybtc          = max( PCT_QTY_BASE  * bal_btc, min_order_size_btc)
+            nbids           = min( math.trunc( pos_lim_long  / qtybtc ), MAX_LAYERS )
+            nasks           = min( math.trunc( pos_lim_short / qtybtc ), MAX_LAYERS )
             
             place_bids = nbids > 0
             place_asks = nasks > 0
