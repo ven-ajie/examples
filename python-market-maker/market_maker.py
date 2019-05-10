@@ -126,6 +126,31 @@ class MarketMaker( object ):
         best_bid    = None
         best_ask    = None
 
+        last_price = self.client.tradehistory(contract)
+		
+		try:
+			last_price_sell  = [o for o in last_price if o['side'] == 'sell']
+			last_price_buy  =  [o for o in last_price if o['side'] == 'buy']
+		
+		except:
+			last_price_sell  = 0
+			last_price_buy  =  0
+
+		# Me
+
+		imb_bids = ob['bids'][0]['cm_amount']
+		imb_asks = ob['asks'][0]['cm_amount']
+		imbalance = imb_bids / imb_asks
+
+		# Menentukan arah
+		if imbalance > 1:
+			imbalance
+		else:
+			imbalance = (imb_asks / imb_bids) * -1
+		# Me
+
+		err = 10 ** -(self.get_precision(contract) + 1)
+        
         err = 10 ** -( self.get_precision( contract ) + 1 )
         
         for b in bids:
