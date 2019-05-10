@@ -171,7 +171,11 @@ class MarketMaker( object ):
                 best_ask = a[ 'price' ]
                 break
         
-        return { 'bid': best_bid, 'ask': best_ask }
+        return { 'bid': best_bid, 'ask': best_ask'last_price':last_price,
+		    'last_price_buy':last_price_buy,'last_price_sell': last_price_sell,
+		    'bid': best_bid, 'ask': best_ask,'imbalance': imbalance, 
+		    'imb_bids': imb_bids,'imb_asks': imb_asks,'bids': bids, 'asks': asks, 
+	            'bid_ords': bid_ords, 'ask_ords': ask_ords }
     
         
     def get_futures( self ): # Get all current futures instruments
