@@ -314,7 +314,7 @@ class MarketMaker( object ):
 			except:
 				last_price_buy1 = 0
 				last_price_sell1 = 0
-				diff_time = 31 # 31 > 30
+				diff_time   = 31 # 31 > 30
 				
 			last_buy 	    = last_price_buy1 - (last_price_buy1*PCT/2)
 			last_sell   	= abs(last_price_sell1) + abs((last_price_sell1*PCT/2))
@@ -381,35 +381,35 @@ class MarketMaker( object ):
             nbids           = min( math.trunc( pos_lim_long  / qtybtc ), MAX_LAYERS )
             nasks           = min( math.trunc( pos_lim_short / qtybtc ), MAX_LAYERS )
             
-            place_bids = nbids > 0
-            place_asks = nasks > 0
+            place_bids      = nbids > 0
+            place_asks      = nasks > 0
             
             if not place_bids and not place_asks:
                 print( 'No bid no offer for %s' % fut, pos_lim_long )
                 continue
                 
-            tsz = self.get_ticksize( fut )            
+            tsz             = self.get_ticksize( fut )            
             # Perform pricing
-            vol = max( self.vols[ BTC_SYMBOL ], self.vols[ fut ] )
+            vol             = max( self.vols[ BTC_SYMBOL ], self.vols[ fut ] )
 
-            eps         = BP * vol * RISK_CHARGE_VOL
-            riskfac     = math.exp( eps )
+            eps             = BP * vol * RISK_CHARGE_VOL
+            riskfac         = math.exp( eps )
 
-            bbo     = self.get_bbo( fut )
-            bid_mkt = bbo[ 'bid' ]
-            ask_mkt = bbo[ 'ask' ]
+            bbo             = self.get_bbo( fut )
+            bid_mkt         = bbo[ 'bid' ]
+            ask_mkt         = bbo[ 'ask' ]
             
             if bid_mkt is None and ask_mkt is None:
-                bid_mkt = ask_mkt = spot
+                bid_mkt     = ask_mkt = spot
             elif bid_mkt is None:
-                bid_mkt = min( spot, ask_mkt )
+                bid_mkt     = min( spot, ask_mkt )
             elif ask_mkt is None:
-                ask_mkt = max( spot, bid_mkt )
+                ask_mkt     = max( spot, bid_mkt )
             mid_mkt = 0.5 * ( bid_mkt + ask_mkt )
             
-            ords        = self.client.getopenorders( fut )
-            cancel_oids = []
-            bid_ords    = ask_ords = []
+            ords            = self.client.getopenorders( fut )
+            cancel_oids     = []
+            bid_ords        = ask_ords = []
             
             if place_bids:
                 
@@ -417,9 +417,9 @@ class MarketMaker( object ):
                 len_bid_ords    = min( len( bid_ords ), nbids )
                 bid0            = mid_mkt * math.exp( -MKT_IMPACT )
                 
-                bids    = [ bid0 * riskfac ** -i for i in range( 1, nbids + 1 ) ]
+                bids            = [ bid0 * riskfac ** -i for i in range( 1, nbids + 1 ) ]
 
-                bids[ 0 ]   = ticksize_floor( bids[ 0 ], tsz )
+                bids[ 0 ]       = ticksize_floor( bids[ 0 ], tsz )
                 
             if place_asks:
                 
@@ -432,6 +432,17 @@ class MarketMaker( object ):
                 asks[ 0 ]   = ticksize_ceil( asks[ 0 ], tsz  )
                 
             for i in range( max( nbids, nasks )):
+
+                #Cancell all orders for any bid/ask execution or quantity in hand >1 (need to improve)
+                # to avoid get only single price in a strong market movement
+				if diff_time < 30 or posfutOrdAsk >1 or posfutOrdBid>1:
+					
+					while True:
+						self.client.cancelall()
+						sleep (20)
+						break
+
+
                 # BIDS
                 if place_bids and i < nbids:
 
