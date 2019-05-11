@@ -302,7 +302,7 @@ class MarketMaker( object ):
 			imb 		    = self.get_bbo(fut)['imbalance']
 			posOpn 		    = sum(OrderedDict({k: self.positions[k]['size'] for k 
 							    in self.futures.keys()}).values())
-			posFut 		    = abs(self.positions[fut]['size'])#individual
+			posFut 		    = abs(self.positions[fut]['size'])#check individual future position
 
 			try:
 				last_price_buy1 = self.get_bbo(fut)['last_price_buy'][0] ['price'] 
@@ -318,7 +318,9 @@ class MarketMaker( object ):
 				
 			last_buy 	    = last_price_buy1 - (last_price_buy1*PCT/2)
 			last_sell   	= abs(last_price_sell1) + abs((last_price_sell1*PCT/2))
-			posFutBid 	    = sum([o['size'] for o in [o for o in self.client.positions () if 
+			
+            #posfutBid/posfutOrdAsk: check total open position for bid/ask side
+            posFutBid 	    = sum([o['size'] for o in [o for o in self.client.positions () if 
 							    o['direction'] == 'buy' and  
 								o['currency'] == fut[:3].lower()]]
 							    )
@@ -326,15 +328,17 @@ class MarketMaker( object ):
 							    o['direction'] == 'sell' and  
 								o['currency'] == fut[:3].lower()]]
 							    )
-			posfutOrdAsk    = sum([o['quantity'] for o in [o for o in self.client.getopenorders(fut) if 
-							    o['direction'] == 'sell' and  
-								o['api'] == True ]]
-							    )
+			#posfutOrdBid/posfutOrdAsk: check total open order for bid/ask side
 			posfutOrdBid    = sum([o['quantity'] for o in [o for o in self.client.getopenorders(fut) if 
 							    o['direction'] == 'buy'and  
 								o['api'] == True]]
 							    )
-		
+
+            posfutOrdAsk    = sum([o['quantity'] for o in [o for o in self.client.getopenorders(fut) if 
+							    o['direction'] == 'sell' and  
+								o['api'] == True ]]
+							    )
+
 			NetPosFut=(posFutBid+posfutAsk)
 			PCTAdj          = PCT/2 if instName [-9:] == 'PERPETUAL' else PCT/2 # 2 = arbitrase aja
 			PCTAdj0         = PCTAdj*1
