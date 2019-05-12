@@ -8,12 +8,12 @@ Risk management
 ===
 
 - Prioritise long over short (since short is a bit riskier). Short only for balancing (offsetted margin to avoid liquidation and allow higher long position)
-- Its better to place equity in many accounts with small balances
 - Focus on protecting capital instead of making transactions
 - Cut loss
+- Allow risk position update by e mail/telegram
 
 
 Basic premises:
 - All up, will be go down. And, vice versa
-- Profit is earned slowly
+- Profit is earned slowly. Rely on small but continuos 24 H transactions instead of big one time transaction
 
